@@ -2,6 +2,9 @@ import socket
 import threading
 
 
+tuple_space = {}
+
+
 def decode_request(request):
     total_size = int(request[:3])
     command = request[3]
@@ -26,13 +29,23 @@ def handle_client(client_socket):
     try:
         request = client_socket.recv(1024).decode()
         command, key, value = decode_request(request)
-        
         if command == 'P':
-            response = "OK ({} , {}) added".format(key, value)
+            if key in tuple_space:
+                response = "ERR {} already exists".format(key)
+            else:
+                tuple_space[key] = value
+                response = "OK ({} , {}) added".format(key, value)
         elif command == 'R':
-            response = "OK ({} , {}) read".format(key, 'example_value')
+            if key in tuple_space:
+                response = "OK ({} , {}) read".format(key, tuple_space[key])
+            else:
+                response = "ERR {} does not exist".format(key)
         elif command == 'G':
-            response = "OK ({} , {}) removed".format(key, 'example_value')
+            if key in tuple_space:
+                removed_value = tuple_space.pop(key)
+                response = "OK ({} , {}) removed".format(key, removed_value)
+            else:
+                response = "ERR {} does not exist".format(key)
         encoded_response = encode_response(response)
         client_socket.sendall(encoded_response.encode())
     except Exception as e:
