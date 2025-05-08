@@ -2,8 +2,43 @@ import socket
 import threading
 
 
+def decode_request(request):
+    total_size = int(request[:3])
+    command = request[3]
+    if command == 'P':
+        parts = request[4:].split(' ', 1)
+        key = parts[0]
+        value = parts[1] if len(parts) > 1 else ''
+    elif command in ['R', 'G']:
+        key = request[4:]
+        value = ''
+    else:
+        raise ValueError("Invalid request command")
+    return command, key, value
+
+
+def encode_response(response):
+    total_size = len(response) + 3
+    return f"{total_size:03d} {response}"
+
+
 def handle_client(client_socket):
-    pass
+    try:
+        request = client_socket.recv(1024).decode()
+        command, key, value = decode_request(request)
+        # 这里暂未实现具体操作，仅返回示例响应
+        if command == 'P':
+            response = "OK ({} , {}) added".format(key, value)
+        elif command == 'R':
+            response = "OK ({} , {}) read".format(key, 'example_value')
+        elif command == 'G':
+            response = "OK ({} , {}) removed".format(key, 'example_value')
+        encoded_response = encode_response(response)
+        client_socket.sendall(encoded_response.encode())
+    except Exception as e:
+        print(f"Error handling client: {e}")
+    finally:
+        client_socket.close()
 
 
 def start_server(port):
