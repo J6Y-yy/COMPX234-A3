@@ -26,7 +26,7 @@ def handle_client(client_socket):
     try:
         request = client_socket.recv(1024).decode()
         command, key, value = decode_request(request)
-        # 这里暂未实现具体操作，仅返回示例响应
+        
         if command == 'P':
             response = "OK ({} , {}) added".format(key, value)
         elif command == 'R':
