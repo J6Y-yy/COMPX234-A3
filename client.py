@@ -38,9 +38,11 @@ def process_request_file(host, port, file_path):
             line = line.strip()
             if line:
                 parts = line.split()
-                if parts[0] == 'PUT' and len(' '.join(parts[1:])) > 970:
-                    print(f"Error: Input violates size condition. Ignoring {line}")
-                    continue
+                if parts[0] == 'PUT':
+                    key_value_length = len(' '.join(parts[1:]))
+                    if key_value_length > 970:
+                        print(f"Error: The combined length of key and value in '{line}' exceeds 970 characters. Skipping this request.")
+                        continue
                 response = send_request(host, port, line)
                 print(f"{line}: {response}")
 
@@ -48,4 +50,10 @@ def process_request_file(host, port, file_path):
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 4:
-        print("Usage: python tuple_space_client.py <host> <port> ")
+        print("Usage: python tuple_space_client.py <host> <port> <file_path>")
+        sys.exit(1)
+    host = sys.argv[1]
+    port = int(sys.argv[2])
+    file_path = sys.argv[3]
+    process_request_file(host, port, file_path)
+    
