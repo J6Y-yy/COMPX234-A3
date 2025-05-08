@@ -1,13 +1,35 @@
 import socket
 
 
+def encode_request(request):
+    parts = request.split()
+    if parts[0] == 'PUT':
+        total_size = len(request) + 3
+        msg = f"{total_size:03d} P {' '.join(parts[1:])}"
+    elif parts[0] == 'READ':
+        total_size = len(request) + 3
+        msg = f"{total_size:03d} R {parts[1]}"
+    elif parts[0] == 'GET':
+        total_size = len(request) + 3
+        msg = f"{total_size:03d} G {parts[1]}"
+    else:
+        raise ValueError("Invalid request command")
+    return msg
+
+
+def decode_response(response):
+    return response[3:].strip()
+
+
 def send_request(host, port, request):
+    encoded_request = encode_request(request)
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
-    client_socket.sendall(request.encode())
+    client_socket.sendall(encoded_request.encode())
     response = client_socket.recv(1024).decode()
+    decoded_response = decode_response(response)
     client_socket.close()
-    return response
+    return decoded_response
 
 
 def process_request_file(host, port, file_path):
